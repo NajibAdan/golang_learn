@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
+	"sort"
 	"strings"
 )
 
 func find_mid(chr string, start *int, end *int) {
+	mid := (*start + *end) / 2
 	if chr == "F" || chr == "L" {
-		*end = (*start + *end) / 2
+		*end = mid
 	} else {
-		*start = (*start + *end) / 2
+		*start = mid + 1
 	}
 }
 
@@ -26,12 +27,13 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	seat_id := 0
 	highest_id := -1
+	seenSeats := make(map[int]bool)
 	var ids_arr []int
 	for scanner.Scan() {
 		row_start, row_end := 0, 127
 		col_start, col_end := 0, 7
-		arrangement := scanner.Text()
-		for _, chr := range strings.Split(arrangement, "") {
+		boardingPass := scanner.Text()
+		for _, chr := range strings.Split(boardingPass, "") {
 			if chr == "F" || chr == "B" {
 				find_mid(chr, &row_start, &row_end)
 			}
@@ -41,15 +43,16 @@ func main() {
 		}
 		seat_id = row_end*8 + col_end
 		ids_arr = append(ids_arr, seat_id)
+		seenSeats[seat_id] = true
 		if seat_id > highest_id {
 			highest_id = seat_id
 		}
 	}
-	slices.Sort(ids_arr)
-	curr := ids_arr[0]
-	for i := 1; i < len(ids_arr); i++ {
-		curr++
-		if ids_arr[i] != curr {
+	sort.Ints(ids_arr)
+	curr := 0
+	for i := ids_arr[0]; i < ids_arr[len(ids_arr)-1]; i++ {
+		if !seenSeats[i] && seenSeats[i+1] && seenSeats[i-1] {
+			curr = i
 			break
 		}
 	}
